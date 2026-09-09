@@ -1,0 +1,26 @@
+<div class="response-head">
+  <span class="status-pill" [class]="response().status">{{ response().status }}</span>
+  <span class="req-id mono">{{ response().request_id }}</span>
+</div>
+
+@if (messageResponse(); as r) {
+  <app-message-view [response]="r" />
+} @else {
+  @if (dataResponse(); as r) {
+    <app-data-groups-view [response]="r" />
+  }
+  @if (verdictResponse(); as r) {
+    <app-verdict-view [response]="r" />
+  }
+  @if (geometryResponse(); as r) {
+    <app-geometry-lookup-view [response]="r" />
+  }
+  @if (bufferResponse(); as r) {
+    <app-buffer-cities-view [response]="r" />
+  }
+  @if (operationResponse(); as r) {
+    <app-spatial-operation-view [response]="r" />
+  }
+}
+
+<app-performance-panel [response]="response()" />

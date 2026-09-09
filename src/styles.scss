@@ -1,0 +1,324 @@
+:root {
+  --bg-deep: #0A1220;
+  --bg-panel: #0F1B2E;
+  --bg-raised: #142238;
+  --bg-input: #17263D;
+  --border-subtle: #1F2E45;
+  --border-strong: #2A3D5C;
+  --agent1: #45D6C4;
+  --agent1-dim: rgba(69, 214, 196, 0.14);
+  --agent2: #F0A860;
+  --agent2-dim: rgba(240, 168, 96, 0.14);
+  --mixed: #B6D66E;
+  --primary: #6C8EF5;
+  --text-primary: #EAF1F8;
+  --text-muted: #8397B5;
+  --text-faint: #55698A;
+  --success: #5FD98A;
+  --warning: #E8C34E;
+  --error: #E8677A;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  height: 100%;
+}
+
+body {
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+code, .mono {
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 4px;
+}
+
+.leaflet-container {
+  background: #0B1424;
+}
+
+.leaflet-control-attribution {
+  background: rgba(10, 18, 32, 0.75) !important;
+  color: var(--text-faint) !important;
+  font-size: 10.5px !important;
+}
+
+.leaflet-control-attribution a {
+  color: var(--text-muted) !important;
+}
+
+.leaflet-control-zoom a {
+  background: var(--bg-raised) !important;
+  color: var(--text-muted) !important;
+  border-color: var(--border-subtle) !important;
+}
+
+.leaflet-control-zoom a:hover {
+  color: var(--text-primary) !important;
+}
+
+.leaflet-popup-content-wrapper {
+  background: var(--bg-raised);
+  color: var(--text-primary);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+}
+
+.leaflet-popup-tip {
+  background: var(--bg-raised);
+}
+
+/*
+ * Shared, unscoped rules reused by the response-viewer sub-views, the geo
+ * panel, and the evaluation log. Kept global (rather than duplicated into
+ * each component's encapsulated stylesheet) since Angular's view
+ * encapsulation only scopes a component's own styles — global classes like
+ * these still apply normally to any component's template.
+ */
+.param-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.param-chip {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: 5px;
+  padding: 3px 8px;
+}
+
+.param-chip b {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.status-pill {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11.5px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.02em;
+}
+
+.status-pill.complete {
+  background: rgba(95, 217, 138, 0.14);
+  color: var(--success);
+}
+
+.status-pill.partial-complete {
+  background: rgba(232, 195, 78, 0.14);
+  color: var(--warning);
+}
+
+.status-pill.not-found,
+.status-pill.rejected,
+.status-pill.error {
+  background: rgba(232, 103, 122, 0.14);
+  color: var(--error);
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+.result-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.result-table th {
+  text-align: left;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-faint);
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border-subtle);
+  white-space: nowrap;
+}
+
+.result-table td {
+  padding: 7px 8px;
+  border-bottom: 1px solid rgba(31, 46, 69, 0.6);
+  font-family: 'IBM Plex Mono', monospace;
+  white-space: nowrap;
+}
+
+.group-block {
+  margin-bottom: 16px;
+}
+
+.group-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.group-label.complete {
+  color: var(--success);
+}
+
+.group-label.partial {
+  color: var(--warning);
+}
+
+.group-label.missing {
+  color: var(--error);
+}
+
+.missing-note {
+  font-size: 12px;
+  color: var(--warning);
+  background: rgba(232, 195, 78, 0.08);
+  border: 1px solid rgba(232, 195, 78, 0.25);
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-bottom: 14px;
+}
+
+.message-banner {
+  font-size: 13px;
+  color: var(--text-primary);
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-left: 3px solid var(--error);
+  border-radius: 6px;
+  padding: 12px 14px;
+  white-space: pre-wrap;
+  line-height: 1.5;
+}
+
+.message-banner.rejected {
+  border-left-color: var(--warning);
+}
+
+.state-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: 20px;
+  padding: 4px 10px;
+}
+
+.state-chip .d {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.state-chip.qualifies .d {
+  background: var(--success);
+}
+
+.state-chip.unknown .d {
+  background: transparent;
+  border: 1px dashed var(--text-faint);
+}
+
+.verdict-badge {
+  display: inline-flex;
+  align-items: center;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+
+.verdict-badge.yes {
+  background: rgba(95, 217, 138, 0.14);
+  color: var(--success);
+}
+
+.verdict-badge.no {
+  background: rgba(232, 103, 122, 0.14);
+  color: var(--error);
+}
+
+.verdict-badge.na {
+  background: var(--bg-input);
+  color: var(--text-faint);
+}
+
+.chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.wkt-entry {
+  margin-top: 14px;
+}
+
+.wkt-entry-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.wkt-entry-name {
+  font-size: 12.5px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.wkt-entry-name .type {
+  color: var(--text-faint);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+}
+
+.wkt-text {
+  width: 100%;
+  height: 66px;
+  resize: vertical;
+  background: #0b1424;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 8px 10px;
+  color: var(--text-muted);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  line-height: 1.5;
+}
+
+.section-note {
+  font-size: 11.5px;
+  color: var(--text-faint);
+  margin: 0 0 10px 0;
+}

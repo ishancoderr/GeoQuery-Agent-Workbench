@@ -1,0 +1,39 @@
+.perf-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.perf-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.perf-chip {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: 5px;
+  padding: 3px 8px;
+
+  b {
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+
+  &.total {
+    border-color: var(--border-strong);
+  }
+
+  &.resolved {
+    color: var(--success);
+  }
+
+  &.warn {
+    color: var(--warning);
+  }
+}

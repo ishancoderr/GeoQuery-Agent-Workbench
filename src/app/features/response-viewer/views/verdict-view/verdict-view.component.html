@@ -1,0 +1,35 @@
+<div class="param-chips">
+  <span class="param-chip">type <b>{{ response().query.type }}</b></span>
+  <span class="param-chip">relationship <b>{{ response().query.relationship.type }}</b></span>
+  @if (response().query.relationship.subject) {
+    <span class="param-chip">subject <b>{{ response().query.relationship.subject }}</b></span>
+  }
+  <span class="param-chip">ref <b>{{ response().query.relationship.refs.join(', ') }}</b></span>
+  @if (response().query.relationship.distance_km) {
+    <span class="param-chip">distance <b>{{ response().query.relationship.distance_km }} km</b></span>
+  }
+</div>
+
+@if (isVerdictQuestion()) {
+  <div class="verdict-badge" [class]="verdictClass()">{{ verdictLabel() }}</div>
+}
+
+@if (response().states.length > 0) {
+  <p class="section-note">qualifying states ({{ response().states.length }})</p>
+  <div class="chip-list">
+    @for (s of response().states; track s) {
+      <span class="state-chip qualifies"><span class="d"></span>{{ s }}</span>
+    }
+  </div>
+} @else {
+  <p class="section-note">no states qualify</p>
+}
+
+@if (response().unknown_states.length > 0) {
+  <p class="section-note">could not be tested — no geometry at either agent</p>
+  <div class="chip-list">
+    @for (s of response().unknown_states; track s) {
+      <span class="state-chip unknown"><span class="d"></span>{{ s }}</span>
+    }
+  </div>
+}

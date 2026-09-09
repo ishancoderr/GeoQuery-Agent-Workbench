@@ -1,0 +1,36 @@
+<div class="topbar">
+  <div class="brand">
+    <span class="marks"><span class="a1"></span><span class="a2"></span></span>
+    GeoQuery Agent Workbench
+  </div>
+  <div class="health-group">
+    <div class="health-pill mono">
+      <span class="ping" [class.offline]="agent1Health().health === 'offline'"></span>
+      {{ AGENT_META.agent1.label }} · :{{ AGENT_META.agent1.port }} ·
+      {{ agent1Health().health }}
+    </div>
+    <div class="health-pill mono">
+      <span class="ping" [class.offline]="agent2Health().health === 'offline'"></span>
+      {{ AGENT_META.agent2.label }} · :{{ AGENT_META.agent2.port }} ·
+      {{ agent2Health().health }}
+    </div>
+  </div>
+</div>
+
+<main>
+  <h2 class="section-title">query &amp; response — per agent</h2>
+  <div class="console-grid">
+    <app-agent-console agentId="agent1" />
+    <app-agent-console agentId="agent2" />
+  </div>
+
+  <h2 class="section-title">geometry — real boundaries, real WKT</h2>
+  <div class="geo-wrap">
+    <app-geo-map />
+    <app-wkt-panel />
+  </div>
+
+  <h2 class="section-title">evaluation log</h2>
+  <app-stat-cards />
+  <app-metrics-table />
+</main>

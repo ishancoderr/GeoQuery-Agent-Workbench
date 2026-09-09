@@ -1,0 +1,30 @@
+<div class="wkt-panel">
+  <div class="wkt-head">
+    <h4>WKT — as returned by PostGIS</h4>
+  </div>
+
+  <div class="wkt-body">
+    @if (isIdle()) {
+      <div class="wkt-empty">// send a query to see geometry here, as WKT text (same as ST_AsText(geo_shape) would return)</div>
+    } @else if (showsInlineElsewhere()) {
+      <div class="wkt-empty">// this query type returns real geometry inline — see the entity list in the console's response above</div>
+    } @else if (entries().length === 0) {
+      <div class="wkt-empty">// no boundary geometry resolved for this query</div>
+    } @else {
+      @for (entry of entries(); track entry.name) {
+        <div class="wkt-entry">
+          <div class="wkt-entry-head">
+            <span class="wkt-entry-name">{{ entry.name }} <span class="type">{{ entry.typeLabel }}</span></span>
+            <app-copy-button [text]="entry.wkt" />
+          </div>
+          <textarea class="wkt-text" readonly>{{ entry.wkt }}</textarea>
+        </div>
+      }
+    }
+  </div>
+
+  <p class="wkt-caption">
+    Coordinates from a public Bundesländer boundary dataset (low-resolution simplification) — shown for map
+    context, not returned by either agent.
+  </p>
+</div>

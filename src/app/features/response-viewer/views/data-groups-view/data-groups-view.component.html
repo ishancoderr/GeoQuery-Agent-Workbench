@@ -1,0 +1,39 @@
+<div class="param-chips">
+  <span class="param-chip">type <b>{{ response().query.type }}</b></span>
+  <span class="param-chip">spatial <b>{{ response().query.spatial.join(', ') }}</b></span>
+  <span class="param-chip">temporal <b>{{ response().query.temporal.join(', ') }}</b></span>
+  <span class="param-chip">attributes <b>{{ response().query.attributes.join(', ') }}</b></span>
+  <span class="param-chip">completeness <b>{{ response().summary.completeness_pct }}%</b></span>
+</div>
+
+@for (group of groups(); track group.label) {
+  <div class="group-block">
+    <div class="group-label" [class]="group.label">{{ group.label }} ({{ group.rows.length }})</div>
+    <div class="table-scroll">
+      <table class="result-table">
+        <thead>
+          <tr>
+            <th>state</th>
+            <th>year</th>
+            @for (attr of response().query.attributes; track attr) {
+              <th>{{ attrLabel(attr) }}</th>
+            }
+            <th>source</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of group.rows; track row.state + row.year) {
+            <tr>
+              <td>{{ row.state }}</td>
+              <td>{{ row.year }}</td>
+              @for (attr of response().query.attributes; track attr) {
+                <td>{{ fmtNum(attrValue(row, attr)) }}</td>
+              }
+              <td><app-source-badge [source]="row.source" /></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+}

@@ -1,0 +1,23 @@
+<div class="param-chips">
+  <span class="param-chip">reference <b>{{ response().query.reference_city }}</b></span>
+  <span class="param-chip">distance <b>{{ response().query.distance_km }} km</b></span>
+  <span class="param-chip">found <b>{{ response().summary.total }}</b></span>
+</div>
+
+@if (response().cities.length === 0) {
+  <p class="section-note">no cities found within range</p>
+} @else {
+  @for (city of response().cities; track city.city_name) {
+    <div class="wkt-entry">
+      <div class="wkt-entry-head">
+        <span class="wkt-entry-name">
+          <app-source-badge [source]="city.source" />
+          {{ city.city_name }}
+          <span class="type">POINT</span>
+        </span>
+        <app-copy-button [text]="city.wkt" />
+      </div>
+      <textarea class="wkt-text" readonly>{{ city.wkt }}</textarea>
+    </div>
+  }
+}

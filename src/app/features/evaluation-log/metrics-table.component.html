@@ -1,0 +1,43 @@
+<div class="metrics-head">
+  <span class="mono note">every query sent from either console, most recent first</span>
+  <button class="export-btn" (click)="exportCsv()">Export CSV</button>
+</div>
+
+<div class="metrics-table-wrap">
+  <table class="metrics-table">
+    <thead>
+      <tr>
+        <th>time</th>
+        <th>agent</th>
+        <th>query</th>
+        <th>status</th>
+        <th>resp. time</th>
+        <th>tokens</th>
+        <th>kqml turns</th>
+        <th>records</th>
+        <th>completeness</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (h of reversedHistory(); track h.time + h.query + $index) {
+        <tr>
+          <td>{{ h.time }}</td>
+          <td>
+            <span class="agent-tag" [class]="AGENT_META[h.agentId].color">
+              <span class="d"></span>{{ AGENT_META[h.agentId].label }}
+            </span>
+          </td>
+          <td class="q-trunc" [title]="h.query">{{ truncate(h.query, 60) }}</td>
+          <td><span class="status-pill" [class]="h.status">{{ h.status }}</span></td>
+          <td>{{ h.totalMs }} ms</td>
+          <td>{{ fmtNum(h.tokens) }}</td>
+          <td>{{ h.kqmlTurns ?? '—' }}</td>
+          <td>{{ h.recordCount }}</td>
+          <td [class.validity-pass]="h.completenessPct === 100" [class.validity-na]="h.completenessPct === null">
+            {{ h.completenessPct !== null ? h.completenessPct + '%' : 'n/a' }}
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

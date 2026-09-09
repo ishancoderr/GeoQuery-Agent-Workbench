@@ -1,0 +1,27 @@
+<div class="param-chips">
+  <span class="param-chip">type <b>GEOMETRY_LOOKUP</b></span>
+  <span class="param-chip">found <b>{{ response().summary.found }}</b></span>
+  <span class="param-chip">missing <b>{{ response().summary.missing }}</b></span>
+</div>
+
+@for (g of response().geometries; track g.entity_name) {
+  <div class="wkt-entry">
+    <div class="wkt-entry-head">
+      <span class="wkt-entry-name">
+        @if (g.wkt) {
+          <app-source-badge [source]="g.source" />
+        } @else {
+          <span class="state-chip unknown"><span class="d"></span>not found</span>
+        }
+        {{ g.entity_name }}
+        <span class="type">{{ g.entity_type }} · {{ g.wkt ? wktGeometryType(g.wkt) : 'n/a' }}</span>
+      </span>
+      @if (g.wkt) {
+        <app-copy-button [text]="g.wkt" />
+      }
+    </div>
+    @if (g.wkt) {
+      <textarea class="wkt-text" readonly>{{ g.wkt }}</textarea>
+    }
+  </div>
+}

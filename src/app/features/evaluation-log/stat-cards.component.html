@@ -1,0 +1,18 @@
+<div class="stat-cards">
+  <div class="stat-card">
+    <div class="num">{{ avgTotalMs() !== null ? fmtNum(avgTotalMs()) : '—' }}</div>
+    <div class="lbl">avg response time (ms)</div>
+  </div>
+  <div class="stat-card">
+    <div class="num">{{ fmtNum(totalTokens()) }}</div>
+    <div class="lbl">total tokens used</div>
+  </div>
+  <div class="stat-card">
+    <div class="num">{{ avgKqmlTurns() !== null ? avgKqmlTurns()!.toFixed(2) : '—' }}</div>
+    <div class="lbl">avg kqml turns / query</div>
+  </div>
+  <div class="stat-card">
+    <div class="num">{{ avgCompleteness() !== null ? avgCompleteness()!.toFixed(1) + '%' : '—' }}</div>
+    <div class="lbl">avg data completeness</div>
+  </div>
+</div>

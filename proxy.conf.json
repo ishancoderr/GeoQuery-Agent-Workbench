@@ -1,0 +1,14 @@
+{
+  "/api/agent1": {
+    "target": "http://localhost:8000",
+    "pathRewrite": { "^/api/agent1": "" },
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/api/agent2": {
+    "target": "http://localhost:8001",
+    "pathRewrite": { "^/api/agent2": "" },
+    "changeOrigin": true,
+    "logLevel": "debug"
+  }
+}

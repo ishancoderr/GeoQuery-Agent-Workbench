@@ -1,0 +1,35 @@
+<div class="console" [class]="meta().color">
+  <div class="console-head">
+    <h3><span class="dot"></span>{{ meta().label }}</h3>
+    <span class="port mono">POST :{{ meta().port }}/query</span>
+  </div>
+
+  <div class="composer">
+    <textarea
+      class="query-input"
+      [ngModel]="state().queryText"
+      (ngModelChange)="setQueryText($event)"
+      placeholder="Ask a natural-language geospatial question..."
+    ></textarea>
+    <div class="composer-row">
+      <div class="chip-row">
+        @for (ex of examples(); track ex.label) {
+          <span class="chip" (click)="fillExample(ex.text)">{{ ex.label }}</span>
+        }
+      </div>
+      <button class="send-btn" [disabled]="state().status === 'loading'" (click)="send()">
+        {{ state().status === 'loading' ? 'Sending…' : 'Send' }}
+      </button>
+    </div>
+  </div>
+
+  <div class="response" [class.empty]="!state().response && !state().error">
+    @if (state().error) {
+      <div class="console-error">{{ state().error }}</div>
+    } @else if (state().response) {
+      <app-response-viewer [response]="state().response!" />
+    } @else {
+      // send a query above to see the parsed parameters and result
+    }
+  </div>
+</div>

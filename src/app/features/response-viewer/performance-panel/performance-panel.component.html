@@ -1,0 +1,27 @@
+<div class="perf-panel">
+  <div class="perf-row">
+    <span class="perf-chip">phase1 <b>{{ response().performance.phase1_ms }}ms</b></span>
+    <span class="perf-chip">phase2 <b>{{ response().performance.phase2_ms }}ms</b></span>
+    <span class="perf-chip">phase3 <b>{{ response().performance.phase3_ms }}ms</b></span>
+    <span class="perf-chip total">total <b>{{ response().performance.total_ms }}ms</b></span>
+  </div>
+  <div class="perf-row">
+    <span class="perf-chip">tokens agent-1 <b>{{ response().performance.tokens.agent_1 }}</b></span>
+    <span class="perf-chip">tokens agent-2 <b>{{ response().performance.tokens.agent_2 }}</b></span>
+    <span class="perf-chip total">tokens total <b>{{ response().performance.tokens.total }}</b></span>
+  </div>
+
+  @if (provenance(); as p) {
+    <div class="perf-row">
+      <span class="perf-chip" [class.resolved]="p.kqml_turns === 0">
+        {{ p.kqml_turns === 0 ? 'resolved locally' : p.kqml_turns + ' kqml turn' + (p.kqml_turns === 1 ? '' : 's') }}
+      </span>
+      <span class="perf-chip">from agent-1 <b>{{ p.records_from_agent_1 }}</b></span>
+      <span class="perf-chip">from agent-2 <b>{{ p.records_from_agent_2 }}</b></span>
+      <span class="perf-chip">from both <b>{{ p.records_from_both }}</b></span>
+      @if (p.records_unavailable > 0) {
+        <span class="perf-chip warn">unavailable <b>{{ p.records_unavailable }}</b></span>
+      }
+    </div>
+  }
+</div>
