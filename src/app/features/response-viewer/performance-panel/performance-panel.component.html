@@ -6,9 +6,14 @@
     <span class="perf-chip total">total <b>{{ response().performance.total_ms }}ms</b></span>
   </div>
   <div class="perf-row">
-    <span class="perf-chip">tokens agent-1 <b>{{ response().performance.tokens.agent_1 }}</b></span>
-    <span class="perf-chip">tokens agent-2 <b>{{ response().performance.tokens.agent_2 }}</b></span>
+    <span class="perf-chip">tokens {{ localLabel() }} <b>{{ response().performance.tokens.local }}</b></span>
+    <span class="perf-chip">tokens {{ peerLabel() }} <b>{{ response().performance.tokens.peer }}</b></span>
     <span class="perf-chip total">tokens total <b>{{ response().performance.tokens.total }}</b></span>
+    @if (verdictTurns() !== null) {
+      <span class="perf-chip" [class.resolved]="verdictTurns() === 0">
+        {{ verdictTurns() === 0 ? 'resolved locally' : verdictTurns() + ' kqml turn' + (verdictTurns() === 1 ? '' : 's') }}
+      </span>
+    }
   </div>
 
   @if (provenance(); as p) {
@@ -16,8 +21,8 @@
       <span class="perf-chip" [class.resolved]="p.kqml_turns === 0">
         {{ p.kqml_turns === 0 ? 'resolved locally' : p.kqml_turns + ' kqml turn' + (p.kqml_turns === 1 ? '' : 's') }}
       </span>
-      <span class="perf-chip">from agent-1 <b>{{ p.records_from_agent_1 }}</b></span>
-      <span class="perf-chip">from agent-2 <b>{{ p.records_from_agent_2 }}</b></span>
+      <span class="perf-chip">from {{ localLabel() }} <b>{{ p.records_local }}</b></span>
+      <span class="perf-chip">from {{ peerLabel() }} <b>{{ p.records_peer }}</b></span>
       <span class="perf-chip">from both <b>{{ p.records_from_both }}</b></span>
       @if (p.records_unavailable > 0) {
         <span class="perf-chip warn">unavailable <b>{{ p.records_unavailable }}</b></span>

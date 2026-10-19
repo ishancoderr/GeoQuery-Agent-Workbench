@@ -1,23 +1,26 @@
 <div class="param-chips">
-  <span class="param-chip">reference <b>{{ response().query.reference_city }}</b></span>
-  <span class="param-chip">distance <b>{{ response().query.distance_km }} km</b></span>
+  <span class="param-chip">type <b>{{ response().query.type }}</b></span>
+  <span class="param-chip">zone <b>{{ zoneLabel() }}</b></span>
+  <span class="param-chip">reference source <b>{{ response().query.reference_source }}</b></span>
+  <span class="param-chip">target <b>{{ response().query.target_entity }}</b></span>
   <span class="param-chip">found <b>{{ response().summary.total }}</b></span>
 </div>
 
-@if (response().cities.length === 0) {
-  <p class="section-note">no cities found within range</p>
+@if (response().message) {
+  <div class="message-banner">{{ response().message }}</div>
+}
+
+@if (referenceMissing()) {
+  <div class="missing-note">
+    "{{ response().query.reference }}" was not found at either agent, so no zone could be built.
+    Check the spelling of the place name (e.g. Bayern, not Bayen).
+  </div>
+} @else if (response().matches.length === 0) {
+  <p class="section-note">no {{ response().query.target_entity }} found {{ zoneLabel() }}</p>
 } @else {
-  @for (city of response().cities; track city.city_name) {
-    <div class="wkt-entry">
-      <div class="wkt-entry-head">
-        <span class="wkt-entry-name">
-          <app-source-badge [source]="city.source" />
-          {{ city.city_name }}
-          <span class="type">POINT</span>
-        </span>
-        <app-copy-button [text]="city.wkt" />
-      </div>
-      <textarea class="wkt-text" readonly>{{ city.wkt }}</textarea>
-    </div>
-  }
+  <p class="section-note">
+    {{ response().summary.total }} {{ response().query.target_entity }}(s) {{ zoneLabel() }} ·
+    {{ response().summary.from_local }} local · {{ response().summary.from_peer }} from peer
+  </p>
+  <app-zone-matches [matches]="response().matches" />
 }

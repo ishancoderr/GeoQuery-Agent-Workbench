@@ -14,21 +14,21 @@
   <div class="verdict-badge" [class]="verdictClass()">{{ verdictLabel() }}</div>
 }
 
-@if (response().states.length > 0) {
-  <p class="section-note">qualifying states ({{ response().states.length }})</p>
+@if (response().matches.length > 0) {
+  <p class="section-note">qualifying {{ entityLabel() }} ({{ response().matches.length }})</p>
   <div class="chip-list">
-    @for (s of response().states; track s) {
+    @for (s of response().matches; track s) {
       <span class="state-chip qualifies"><span class="d"></span>{{ s }}</span>
     }
   </div>
 } @else {
-  <p class="section-note">no states qualify</p>
+  <p class="section-note">no {{ entityLabel() }} qualify</p>
 }
 
-@if (response().unknown_states.length > 0) {
+@if (response().unknown.length > 0) {
   <p class="section-note">could not be tested — no geometry at either agent</p>
   <div class="chip-list">
-    @for (s of response().unknown_states; track s) {
+    @for (s of response().unknown; track s) {
       <span class="state-chip unknown"><span class="d"></span>{{ s }}</span>
     }
   </div>

@@ -1,0 +1,8 @@
+python -m agent1.auth add-user admin --name "Ishan"
+python -m agent1.auth add-user supervisor1 --name "Auriol"
+python -m agent1.auth add-user supervisor2 --name "Christian"
+44137Ishan@
+44138Auriol@#$
+44139Christian@#$
+
+

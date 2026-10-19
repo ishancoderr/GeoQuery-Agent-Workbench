@@ -14,7 +14,7 @@ export interface SpatialInvolvement {
 }
 
 /**
- * Only the data-table and verdict/states shapes are backed by the public
+ * Only the data-table and verdict/matches shapes are backed by the public
  * boundary GeoJSON (they never return their own geometry). Geometry/operation/
  * buffer responses carry real WKT instead and are drawn as their own overlay,
  * so they don't need base-layer coloring here.
@@ -26,7 +26,7 @@ export function classifySpatialInvolvement(response: AgentQueryResponse): Spatia
   if (isDataGroupsResponse(response)) {
     const sourcesByState = new Map<string, Set<string>>();
     for (const row of [...response.data.complete, ...response.data.partial, ...response.data.missing]) {
-      const key = row.state.toLowerCase();
+      const key = row.spatial.toLowerCase();
       const set = sourcesByState.get(key) ?? new Set<string>();
       set.add(row.source);
       sourcesByState.set(key, set);
@@ -47,8 +47,8 @@ export function classifySpatialInvolvement(response: AgentQueryResponse): Spatia
   }
 
   if (isVerdictResponse(response)) {
-    for (const s of response.states) colorByName.set(s.toLowerCase(), 'qualifies');
-    for (const s of response.unknown_states) colorByName.set(s.toLowerCase(), 'unknown');
+    for (const s of response.matches) colorByName.set(s.toLowerCase(), 'qualifies');
+    for (const s of response.unknown) colorByName.set(s.toLowerCase(), 'unknown');
     for (const ref of response.query.relationship.refs) referenceNames.add(ref.toLowerCase());
     return { colorByName, referenceNames };
   }

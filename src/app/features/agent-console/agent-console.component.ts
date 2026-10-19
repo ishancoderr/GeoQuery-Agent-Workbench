@@ -37,9 +37,13 @@ export class AgentConsoleComponent {
     this.setQueryText(text);
   }
 
+  setLlm(llm: string): void {
+    this.store.dispatch(AgentActions.setLlm({ agentId: this.agentId(), llm }));
+  }
+
   send(): void {
     const query = this.state().queryText.trim();
     if (!query) return;
-    this.store.dispatch(AgentActions.sendQuery({ agentId: this.agentId(), query }));
+    this.store.dispatch(AgentActions.sendQuery({ agentId: this.agentId(), query, llm: this.state().llm }));
   }
 }

@@ -12,22 +12,10 @@ export interface ActiveResult {
   response: AgentQueryResponse;
 }
 
-/** Whichever agent produced the most recent successful response drives the shared map/WKT panel. */
-export const selectLastActiveResult = createSelector(
-  selectAgent1,
-  selectAgent2,
-  (agent1, agent2): ActiveResult | null => {
-    const candidates: { agentId: AgentId; state: typeof agent1 }[] = [
-      { agentId: 'agent1', state: agent1 },
-      { agentId: 'agent2', state: agent2 },
-    ];
-    const withResponses = candidates.filter(c => c.state.response !== null);
-    if (withResponses.length === 0) return null;
-    const latest = withResponses.reduce((a, b) => (a.state.updatedAt >= b.state.updatedAt ? a : b));
-    return {
-      agentId: latest.agentId,
-      queryText: latest.state.queryText,
-      response: latest.state.response as AgentQueryResponse,
-    };
-  },
-);
+/** That agent's own current result (or null before it has one) — drives its own map/WKT panel. */
+export function selectAgentResult(agentId: AgentId) {
+  const base = agentId === 'agent1' ? selectAgent1 : selectAgent2;
+  return createSelector(base, (state): ActiveResult | null =>
+    state.response ? { agentId, queryText: state.queryText, response: state.response } : null,
+  );
+}

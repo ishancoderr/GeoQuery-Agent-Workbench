@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { DataGroupsResponse, DataRow } from '../../../../core/models/agent-response.model';
 import { attrLabel, fmtNum } from '../../../../core/utils/format.util';
 import { SourceBadgeComponent } from '../../../../shared/source-badge/source-badge.component';
+import { CombinedTotalsComponent } from '../combined-totals/combined-totals.component';
 
 interface RowGroup {
   label: string;
@@ -12,7 +13,7 @@ interface RowGroup {
 @Component({
   selector: 'app-data-groups-view',
   standalone: true,
-  imports: [SourceBadgeComponent],
+  imports: [SourceBadgeComponent, CombinedTotalsComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './data-groups-view.component.html',
   styleUrl: './data-groups-view.component.scss',
@@ -33,9 +34,12 @@ export class DataGroupsViewComponent {
   }
 
   attrValue(row: DataRow, attr: string): number | null | undefined {
-    if (attr === 'population') return row.population;
-    if (attr === 'marriages') return row.marriages;
-    if (attr === 'live_births') return row.live_births;
-    return undefined;
+    // Read whichever attribute column the query actually asked for, by
+    // name, instead of a fixed population/marriages/live_births list — a
+    // list that silently rendered "—" for any other entity's attribute
+    // (e.g. a river's length_km) even though the backend sent a real
+    // value, since it fell through every check to the implicit undefined.
+    const value = row[attr];
+    return typeof value === 'number' || value === null || value === undefined ? value : undefined;
   }
 }

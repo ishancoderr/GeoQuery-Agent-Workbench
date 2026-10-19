@@ -17,7 +17,7 @@ export interface BoundaryFeatureCollection {
 }
 
 /**
- * Public Bundesländer boundary GeoJSON, used purely as map/WKT context for
+ * Public German state boundary GeoJSON, used purely as map/WKT context for
  * query shapes that don't return their own geometry (data-table, verdict).
  * Fetched once and cached — this is reference context, not agent data.
  */

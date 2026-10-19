@@ -22,6 +22,7 @@ export const metricsFeature = createFeature({
         time: nowStamp(),
         agentId,
         query,
+        llm: response.llm?.label ?? 'default',
         status: response.status,
         totalMs: response.performance.total_ms,
         tokens: response.performance.tokens.total,
@@ -31,11 +32,12 @@ export const metricsFeature = createFeature({
       };
       return { history: [...state.history, entry] };
     }),
-    on(AgentActions.sendQueryFailure, (state, { agentId, query, error }): MetricsState => {
+    on(AgentActions.sendQueryFailure, (state, { agentId, query, llm }): MetricsState => {
       const entry: MetricsEntry = {
         time: nowStamp(),
         agentId,
         query,
+        llm: llm ?? 'default',
         status: 'error',
         totalMs: 0,
         tokens: 0,

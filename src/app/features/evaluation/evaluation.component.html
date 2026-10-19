@@ -1,0 +1,378 @@
+@if (evaluator(); as ev) {
+  @if (ev.installed && !ev.running) {
+    <div class="panel start-panel">
+      <div>
+        <div class="start-title">The evaluator is not running</div>
+        <div class="faint mono small">
+          It runs the evaluations in the background. {{ ev.agent }} starts it; it keeps going if you close this page.
+        </div>
+      </div>
+      <button class="primary-btn" [disabled]="evaluatorBusy()" (click)="startEvaluator()">
+        {{ evaluatorBusy() ? 'starting…' : 'Start evaluator' }}
+      </button>
+    </div>
+  } @else if (ev.running) {
+    <div class="evaluator-strip mono small">
+      <span class="dot"></span> evaluator running
+      <button class="small-btn danger" [disabled]="evaluatorBusy()" (click)="stopEvaluator()">
+        {{ evaluatorBusy() ? 'stopping…' : 'Stop evaluator' }}
+      </button>
+    </div>
+  }
+}
+
+@if (error()) {
+  <div class="banner mono">
+    {{ error() }}
+    <button class="small-btn" (click)="checkEvaluator(true)">Try again</button>
+  </div>
+}
+
+<!-- ── 1. a new run ─────────────────────────────────────────────────────── -->
+<h2 class="section-title">new evaluation run</h2>
+@if (setup(); as s) {
+  <div class="panel setup">
+    <div class="setup-col">
+      <div class="col-title mono">step 1 · models · repeats on {{ s.agents.primary }}</div>
+      <table class="plain">
+        @for (m of models(); track m.id) {
+          <tr [class.off]="!m.available">
+            <td>
+              <label class="check">
+                <input type="checkbox" [checked]="m.chosen" [disabled]="!m.available"
+                       (change)="toggleModel(m.id, $any($event.target).checked)" />
+                <span>
+                  {{ m.label }}
+                  <span class="model-id mono faint small">
+                    {{ m.id }}
+                    @if (!m.available) { · not configured }
+                    @else if (!m.peerOnline) { · {{ s.agents.peer }} offline }
+                    @else if (!m.availablePeer) { · not on {{ s.agents.peer }} }
+                    @else if (!m.priced) { · no price set }
+                  </span>
+                </span>
+              </label>
+            </td>
+            <td class="repeats">
+              <input class="num mono" type="number" min="1" max="20" [ngModel]="m.repeats"
+                     (ngModelChange)="setRepeats(m.id, $event)" [disabled]="!m.available"
+                     title="how often each question is asked of this model (consistency)" />
+              <span class="mono faint">×</span>
+            </td>
+          </tr>
+        }
+      </table>
+      <label class="check mono small">
+        <input type="checkbox" [checked]="symmetry()" (change)="setSymmetry($any($event.target).checked)" />
+        symmetry: also ask each question once of {{ s.agents.peer }}
+      </label>
+      <label class="row mono small">
+        label
+        <input class="text mono" type="text" maxlength="120" [ngModel]="label()" (ngModelChange)="label.set($event)"
+               placeholder="e.g. trial run" />
+      </label>
+    </div>
+
+    <div class="setup-col">
+      <div class="col-title mono">step 2 · questions</div>
+
+      <form class="add-row" (ngSubmit)="addTypedQuestion()">
+        <input class="add-input" type="text" name="newQuestion" autocomplete="off"
+               placeholder="Type a question, e.g. Which states border Bayern?"
+               [ngModel]="newQuestion()" (ngModelChange)="setNewQuestion($event)" />
+        <button class="small-btn ok-btn" type="submit" [disabled]="!newQuestion().trim() || setLocked()"
+                title="keep this question in the list and type another">Add</button>
+      </form>
+
+      <div class="set-tools">
+        <label class="small-btn file-btn">
+          Upload .json
+          <input type="file" accept=".json,application/json" (change)="upload($event)" />
+        </label>
+        <button class="small-btn" type="button" (click)="downloadTemplate()"
+                title="a sample file in this format — fill it in, then upload it">Download template</button>
+      </div>
+
+      @if (parsed().error) {
+        <div class="err mono small">{{ parsed().error }}</div>
+      } @else if (questions().length) {
+        <div class="ok mono small">{{ questions().length }} question(s) will run</div>
+      }
+      @if (!parsed().error && parsed().items.length) {
+        <ol class="q-list">
+          @for (q of parsed().items; track $index) {
+            <li>
+              <span class="q-text">{{ q.question }}</span>
+              <button class="q-remove" type="button" (click)="removeQuestion($index)"
+                      [attr.aria-label]="'remove question ' + ($index + 1)" title="remove">✕</button>
+            </li>
+          }
+        </ol>
+      }
+
+      <details class="json-edit" [open]="!!parsed().error">
+        <summary class="mono small">Edit as JSON</summary>
+        <textarea class="set mono" spellcheck="false" [ngModel]="setText()" (ngModelChange)="setSetText($event)"
+                  placeholder='[
+  {"question": "What was the population of Hessen in 2019?"},
+  {"question": "Which states border Bayern?"}
+]'></textarea>
+      </details>
+
+      <div class="faint mono small help">
+        Every question is asked of each model ticked in step 1.
+        A .json file is a list in [ ] with one &#123;"question": "..."&#125; per question — see Download template.
+      </div>
+    </div>
+
+    <div class="setup-col estimate">
+      <div class="col-title mono">step 3 · run</div>
+      @if (planProblem()) {
+        <div class="warn mono small">{{ planProblem() }}</div>
+        @if (estimateError()) {
+          <button class="small-btn check-again" (click)="checkAgain()">Check again</button>
+        }
+      } @else {
+        @if (estimate(); as e) {
+          <div class="big mono">{{ fmtNum(e.asks) }} asks</div>
+          <div class="mono">{{ e.questions }} question(s) · ≈ {{ usd(e.cost_usd) }} · ≈ {{ duration(e.seconds) }}</div>
+          <table class="plain small mono">
+            @for (m of e.models; track m.model) {
+              <tr [title]="m.basis">
+                <td>{{ modelLabel(m.model) }}</td>
+                <td>{{ fmtNum(m.asks) }}</td>
+                <td>{{ usd(m.cost_usd) }}</td>
+                <td>{{ duration(m.seconds) }}</td>
+              </tr>
+            }
+          </table>
+          <div class="faint mono small">from measured averages once a model has run; settings.yaml prices</div>
+        } @else {
+          <div class="faint mono small">checking…</div>
+        }
+      }
+      <button class="primary-btn" [disabled]="!canStart()" (click)="start()">
+        {{ starting() ? 'starting…' : 'Start run' }}
+      </button>
+    </div>
+  </div>
+} @else if (!error()) {
+  <div class="faint mono">loading…</div>
+}
+
+<!-- ── 2. runs ──────────────────────────────────────────────────────────── -->
+<h2 class="section-title">runs · tick the ones to show below</h2>
+<div class="panel">
+  @if (!runs().length) {
+    <div class="faint mono pad">no runs yet</div>
+  } @else {
+    <table class="grid">
+      <thead>
+        <tr><th></th><th>#</th><th>label</th><th>status</th><th>progress</th><th>cost</th><th>time left</th><th>by</th><th></th></tr>
+      </thead>
+      <tbody>
+        @for (r of runs(); track r.id) {
+          <tr>
+            <td><input type="checkbox" [checked]="isSelected(r.id)" (change)="toggleSelected(r.id, $any($event.target).checked)" /></td>
+            <td>{{ r.id }}</td>
+            <td>
+              {{ r.label }}
+              <div class="faint small">
+                {{ r.plan.models.length }} model(s) · {{ r.plan.questions }} questions
+                · symmetry {{ r.plan.symmetry ? 'on' : 'off' }}
+              </div>
+              @if (r.current) {
+                <div class="faint small">now: {{ modelLabel(r.current.model) }} · {{ r.current.agent_name }} · {{ r.current.qid }} rep {{ r.current.rep }}</div>
+              }
+              @if (r.note) { <div class="warn small">{{ r.note }}</div> }
+            </td>
+            <td><span class="status-pill" [class]="r.status">{{ r.status }}</span></td>
+            <td class="progress-cell">
+              <div class="bar"><div class="fill" [style.width.%]="progress(r)"></div></div>
+              <span class="small">{{ r.asks_done ?? 0 }}/{{ r.asks_total }}</span>
+              @if (r.asks_failed) { <span class="small err">· {{ r.asks_failed }} failed</span> }
+            </td>
+            <td>{{ usd(r.cost_usd) }}</td>
+            <td>{{ r.eta_s !== null && r.eta_s !== undefined ? duration(r.eta_s) : '—' }}</td>
+            <td>{{ r.created_by }}</td>
+            <td class="actions">
+              @if (r.status === 'running' || r.status === 'queued') { <button class="small-btn" (click)="control(r, 'pause')">Pause</button> }
+              @if (r.status === 'paused') { <button class="small-btn" (click)="control(r, 'resume')">Resume</button> }
+              @if (r.status === 'running' || r.status === 'queued' || r.status === 'paused') {
+                <button class="small-btn danger" (click)="control(r, 'cancel')">Cancel</button>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</div>
+
+@if (selected().length) {
+  <!-- ── 3. results ─────────────────────────────────────────────────────── -->
+  <h2 class="section-title">results · run(s) {{ selected().join(', ') }}</h2>
+  @if (results(); as res) {
+    <div class="downloads">
+      <span class="mono faint small">one CSV per model:</span>
+      @for (m of res.models; track m.model) {
+        <a class="export-btn mono" [href]="modelCsvUrl(m.model)" download
+           title="every ask of this model: correctness, answer, verdict, consistency, symmetry, tokens, times">⬇ {{ modelLabel(m.model) }}.csv</a>
+      }
+      @if (res.models.length > 1) {
+        <a class="export-btn mono strong" [href]="perModelZipUrl()" download
+           title="all the per-model CSVs and the summary, in one zip">⬇ all models (.zip)</a>
+      }
+    </div>
+    <details class="col-defs">
+      <summary class="mono faint small">what each CSV column means</summary>
+      <div class="panel scroll">
+        <table class="grid">
+          <thead>
+            <tr><th>column</th><th>meaning</th></tr>
+          </thead>
+          <tbody>
+            @for (g of CSV_COLUMN_GROUPS; track g.group) {
+              <tr class="col-group"><td colspan="2" class="mono faint small">{{ g.group }}</td></tr>
+              @for (c of g.columns; track c.column) {
+                <tr><td class="mono">{{ c.column }}</td><td>{{ c.meaning }}</td></tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    </details>
+  }
+
+  @if (results(); as res) {
+    <div class="panel scroll">
+      <table class="grid">
+        <thead>
+          <tr>
+            <th>model</th><th>questions</th><th>asks</th>
+            <th title="classify label = answer key">category</th>
+            <th title="extracted details = answer key">extraction</th>
+            <th title="every SQL step passed the safety check and ran (after the one retry)">SQL ok</th>
+            <th title="… without needing the retry">SQL 1st try</th>
+            <th title="final answer confirmed correct, of the answers reviewed">answer</th>
+            <th title="share of the repeats giving the most common answer (mean over questions)">consistency</th>
+            <th title="peer gave the same answer">symmetry</th>
+            <th>tokens / ask</th><th>cost</th><th>median</th><th>p95</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (m of res.models; track m.model) {
+            <tr>
+              <td>{{ modelLabel(m.model) }}</td>
+              <td>{{ m.questions }}</td>
+              <td>{{ m.asks }}@if (m.http_errors) { <span class="err"> ({{ m.http_errors }} err)</span> }</td>
+              <td>{{ pct(m.category_accuracy) }}</td>
+              <td>{{ pct(m.extraction_accuracy) }}</td>
+              <td>{{ pct(m.sql_ok_rate) }}</td>
+              <td>{{ pct(m.sql_first_try_rate) }}</td>
+              <td>
+                {{ pct(m.answer_accuracy) }}
+                <span class="faint small">{{ m.answers_reviewed }} rev.{{ m.answers_unreviewed ? ' · ' + m.answers_unreviewed + ' open' : '' }}</span>
+              </td>
+              <td>{{ pct(m.consistency_mean) }} <span class="faint small">{{ m.questions_repeated ? 'n=' + m.questions_repeated : '1 rep' }}</span></td>
+              <td>{{ pct(m.symmetry_rate) }} <span class="faint small">{{ m.symmetry_compared ? 'n=' + m.symmetry_compared : '' }}</span></td>
+              <td>{{ fmtNum(m.tokens_total_mean) }}</td>
+              <td>{{ usd(m.cost_usd_sum) }}</td>
+              <td>{{ secs(m.wall_ms_median) }}</td>
+              <td>{{ secs(m.wall_ms_p95) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <details class="panel pad-details">
+      <summary class="mono">per question</summary>
+      <label class="row mono small">
+        model
+        <select class="mono" [ngModel]="questionModel()" (ngModelChange)="questionModel.set($event)">
+          <option value="">all</option>
+          @for (id of resultModels(); track id) { <option [value]="id">{{ modelLabel(id) }}</option> }
+        </select>
+      </label>
+      <div class="scroll">
+        <table class="grid">
+          <thead>
+            <tr><th>model</th><th>id</th><th>question</th><th>category</th><th>extr.</th><th>SQL</th><th>answer</th><th>consist.</th><th>sym.</th><th>median</th><th>tokens</th></tr>
+          </thead>
+          <tbody>
+            @for (q of shownQuestions(); track q.model + q.qid) {
+              <tr>
+                <td>{{ modelLabel(q.model) }}</td>
+                <td>{{ q.qid }}</td>
+                <td [title]="q.question + ' → ' + (q.most_common_answer ?? '')">{{ truncate(q.question, 54) }}</td>
+                <td>{{ pct(q.category_accuracy) }}</td>
+                <td>{{ pct(q.extraction_accuracy) }}</td>
+                <td>{{ pct(q.sql_ok_rate) }}</td>
+                <td [class.ok]="q.first_answer_verdict === 'correct'" [class.err]="q.first_answer_verdict === 'wrong'">
+                  {{ q.first_answer_verdict === 'correct' ? '✓' : q.first_answer_verdict === 'wrong' ? '✗' : '?' }}
+                </td>
+                <td>{{ pct(q.consistency) }}</td>
+                <td>{{ q.symmetric === null ? '—' : q.symmetric ? '✓' : '✗' }}</td>
+                <td>{{ secs(q.wall_ms_median) }}</td>
+                <td>{{ fmtNum(q.tokens_total_mean) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </details>
+  }
+
+  <!-- ── 4. confirm the answers ─────────────────────────────────────────── -->
+  <h2 class="section-title">confirm the answers · each distinct answer once</h2>
+  <div class="review-head">
+    <span class="faint mono small">
+      A verdict applies to that answer wherever it occurs — every model, agent and run that gave the same answer.
+      The first answer confirmed correct becomes the expected answer for the question.
+    </span>
+    <label class="check mono small">
+      <input type="checkbox" [checked]="onlyOpen()" (change)="setOnlyOpen($any($event.target).checked)" />
+      only unconfirmed
+    </label>
+  </div>
+  @if (!review().length) {
+    <div class="faint mono pad">{{ onlyOpen() ? 'nothing left to confirm' : 'no answers yet' }}</div>
+  }
+  @for (item of review(); track key(item)) {
+    <div class="panel review-item" [class.correct]="item.verdict === 'correct'" [class.wrong]="item.verdict === 'wrong'">
+      <div class="review-top">
+        <div>
+          <span class="mono qid">{{ item.qid }}</span> {{ item.question }}
+          @if (item.expected_category) {
+            <span class="faint mono small"> · expected {{ item.expected_category }}</span>
+          }
+        </div>
+        <div class="mono small faint">
+          {{ item.asks }} ask(s) · {{ modelLabels(item.models) }} · {{ item.agents.join(', ') }}
+        </div>
+      </div>
+      <div class="mono answer">{{ item.summary }}</div>
+      @if (item.suggestion) {
+        <div class="mono small" [class.warn]="item.diff_to_confirmed">suggested: {{ item.suggestion }}</div>
+      }
+      @if (item.diff_to_confirmed) {
+        <pre class="diff">{{ item.diff_to_confirmed }}</pre>
+      }
+      <div class="review-actions">
+        <button class="small-btn" (click)="toggleView(item)">{{ openView()[key(item)] ? 'hide' : 'show' }} answer</button>
+        <input class="text mono" type="text" maxlength="1000" placeholder="note (optional)"
+               [ngModel]="notes[key(item)] ?? item.note ?? ''" (ngModelChange)="notes[key(item)] = $event" />
+        <button class="small-btn ok-btn" [class.active]="item.verdict === 'correct'" (click)="judge(item, 'correct')">✓ correct</button>
+        <button class="small-btn danger" [class.active]="item.verdict === 'wrong'" (click)="judge(item, 'wrong')">✗ wrong</button>
+        @if (item.verdict) {
+          <button class="small-btn" (click)="judge(item, null)">clear</button>
+          <span class="faint mono small">by {{ item.by_user }}</span>
+        }
+      </div>
+      @if (openView()[key(item)]) {
+        <pre class="view">{{ pretty(item.view) }}</pre>
+      }
+    </div>
+  }
+}

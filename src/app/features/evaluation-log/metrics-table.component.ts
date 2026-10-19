@@ -10,6 +10,7 @@ const CSV_COLUMNS: (keyof MetricsEntry)[] = [
   'time',
   'agentId',
   'query',
+  'llm',
   'status',
   'totalMs',
   'tokens',

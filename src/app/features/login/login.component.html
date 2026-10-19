@@ -1,0 +1,29 @@
+<div class="login-wrap">
+  <form class="login-card" (submit)="$event.preventDefault(); submit()" autocomplete="on">
+    <div class="brand">
+      <span class="marks"><span class="a1"></span><span class="a2"></span></span>
+      GeoQuery Agent Workbench
+    </div>
+    <p class="hint">Log in to ask Agent-001 and Agent-002.</p>
+
+    @if (auth().notice) {
+      <div class="notice">{{ auth().notice }}</div>
+    }
+
+    <label for="login-username">Username</label>
+    <input id="login-username" name="username" class="mono" autocomplete="username" autofocus
+           [(ngModel)]="username" [disabled]="auth().submitting" />
+
+    <label for="login-password">Password</label>
+    <input id="login-password" name="password" type="password" class="mono" autocomplete="current-password"
+           [(ngModel)]="password" [disabled]="auth().submitting" />
+
+    @if (auth().error) {
+      <div class="error" role="alert">{{ auth().error }}</div>
+    }
+
+    <button type="submit" class="login-btn" [disabled]="auth().submitting || !username.trim() || !password">
+      {{ auth().submitting ? 'Logging in…' : 'Log in' }}
+    </button>
+  </form>
+</div>

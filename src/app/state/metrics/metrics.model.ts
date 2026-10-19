@@ -4,6 +4,8 @@ export interface MetricsEntry {
   time: string;
   agentId: AgentId;
   query: string;
+  /** The model that answered (or was asked, for a failed query). */
+  llm: string;
   status: string;
   totalMs: number;
   tokens: number;

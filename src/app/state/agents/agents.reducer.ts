@@ -2,7 +2,9 @@ import { createFeature, createReducer, on } from '@ngrx/store';
 
 import { AgentId, HealthStatus, RequestStatus } from '../../core/models/agent.model';
 import { AgentQueryResponse } from '../../core/models/agent-response.model';
+import { LlmOption } from '../../core/models/llm.model';
 import { AgentActions } from './agents.actions';
+import { AuthActions } from '../auth/auth.actions';
 
 export interface SingleAgentState {
   queryText: string;
@@ -11,6 +13,10 @@ export interface SingleAgentState {
   error: string | null;
   health: HealthStatus;
   updatedAt: number;
+  /** The models this agent can answer with (GET /llms); empty until loaded. */
+  llms: LlmOption[];
+  /** The model chosen for the next query (the agent's default until changed). */
+  llm: string | null;
 }
 
 export interface AgentsState {
@@ -26,6 +32,8 @@ function initialSingleAgentState(): SingleAgentState {
     error: null,
     health: 'unknown',
     updatedAt: 0,
+    llms: [],
+    llm: null,
   };
 }
 
@@ -70,6 +78,17 @@ export const agentsFeature = createFeature({
     on(AgentActions.healthResult, (state, { agentId, status }) =>
       patchAgent(state, agentId, { health: status }),
     ),
+    on(AgentActions.loadLlmsSuccess, (state, { agentId, list }) => {
+      // keep the user's choice if the agent still offers it, else its default
+      const kept = list.models.some(m => m.id === state[agentId].llm && m.available);
+      return patchAgent(state, agentId, { llms: list.models, llm: kept ? state[agentId].llm : list.default });
+    }),
+    on(AgentActions.setLlm, (state, { agentId, llm }) => patchAgent(state, agentId, { llm })),
+    // A new login (maybe another user) starts with fresh consoles and model lists.
+    on(AuthActions.loggedOut, AuthActions.sessionEnded, state => ({
+      agent1: { ...initialAgentsState.agent1, health: state.agent1.health },
+      agent2: { ...initialAgentsState.agent2, health: state.agent2.health },
+    })),
   ),
 });
 

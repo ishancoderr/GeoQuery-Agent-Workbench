@@ -1,8 +1,8 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, effect, inject, viewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, computed, effect, inject, input, viewChild } from '@angular/core';
 import * as L from 'leaflet';
 import { Store } from '@ngrx/store';
 
-import { AGENT_META } from '../../core/models/agent.model';
+import { AGENT_META, AgentId } from '../../core/models/agent.model';
 import {
   AgentQueryResponse,
   isBufferResponse,
@@ -14,7 +14,7 @@ import { BoundaryFeature, BoundaryGeoJsonService } from '../../core/services/bou
 import { classifySpatialInvolvement, SpatialClass } from '../../core/utils/geo-color.util';
 import { wktToGeoJson } from '../../core/utils/wkt.util';
 import { truncate } from '../../core/utils/format.util';
-import { ActiveResult, selectLastActiveResult } from '../../state/agents/agents.selectors';
+import { ActiveResult, selectAgentResult } from '../../state/agents/agents.selectors';
 
 const IDLE_STYLE: L.PathOptions = { color: '#2A3D5C', weight: 1, fillColor: '#17263D', fillOpacity: 0.55 };
 
@@ -36,7 +36,7 @@ const REFERENCE_OVERRIDE: L.PathOptions = { color: '#EAF1F8', weight: 2.5 };
   template: `
     <div class="geo-map-panel">
       <div class="geo-map-head">
-        <h4>Leaflet — Bundesländer boundaries</h4>
+        <h4>{{ meta().label }} — German state boundaries</h4>
       </div>
       <div class="geo-current mono">{{ caption }}</div>
       <div #mapEl class="leaflet-map"></div>
@@ -55,10 +55,20 @@ export class GeoMapComponent implements AfterViewInit {
   private readonly store = inject(Store);
   private readonly boundaryService = inject(BoundaryGeoJsonService);
 
-  private readonly mapEl = viewChild.required<ElementRef<HTMLDivElement>>('mapEl');
-  private readonly activeResult = this.store.selectSignal(selectLastActiveResult);
+  agentId = input.required<AgentId>();
+  meta = computed(() => AGENT_META[this.agentId()]);
 
-  caption = 'No query run yet — showing all 16 states, idle.';
+  private readonly mapEl = viewChild.required<ElementRef<HTMLDivElement>>('mapEl');
+  // Select both up front (cheap, static selectors) and pick per the input lazily —
+  // building a selector from this.agentId() eagerly here would read the input
+  // before Angular has set it.
+  private readonly agent1Result = this.store.selectSignal(selectAgentResult('agent1'));
+  private readonly agent2Result = this.store.selectSignal(selectAgentResult('agent2'));
+  private readonly activeResult = computed(() =>
+    this.agentId() === 'agent1' ? this.agent1Result() : this.agent2Result(),
+  );
+
+  caption = 'No query run yet — idle.';
 
   private map!: L.Map;
   private boundaryLayer!: L.GeoJSON;
@@ -101,15 +111,21 @@ export class GeoMapComponent implements AfterViewInit {
 
     if (!result || isMessageResponse(result.response)) {
       this.boundaryLayer?.eachLayer(layer => (layer as L.Path).setStyle(IDLE_STYLE));
-      this.caption = 'No query run yet — showing all 16 states, idle.';
+      this.caption = 'No query run yet — idle.';
       return;
     }
 
-    const { agentId, queryText, response } = result;
-    this.caption = `Last query — asked ${AGENT_META[agentId].label}: ${truncate(queryText, 70)}`;
+    const { queryText, response } = result;
+    this.caption = `Last query: ${truncate(queryText, 70)}`;
 
     if (isGeometryResponse(response) || isBufferResponse(response) || isSpatialOperationResponse(response)) {
-      this.boundaryLayer?.eachLayer(layer => (layer as L.Path).setStyle(IDLE_STYLE));
+      // A buffer around a state ("cities inside Bayern") outlines that state
+      // on the base layer too, so the matches are seen against their zone.
+      const reference = isBufferResponse(response) ? response.query.reference.toLowerCase() : null;
+      this.boundaryLayer?.eachLayer(layer => {
+        const name = (layer as L.Path & { feature: BoundaryFeature }).feature.properties.name.toLowerCase();
+        (layer as L.Path).setStyle(name === reference ? { ...IDLE_STYLE, ...REFERENCE_OVERRIDE } : IDLE_STYLE);
+      });
       this.renderRealGeometry(response);
       return;
     }
@@ -143,11 +159,16 @@ export class GeoMapComponent implements AfterViewInit {
         entries.push({ wkt: g.wkt, style: g.source === 'Agent-1' ? CLASS_STYLE.agent1 : CLASS_STYLE.agent2 });
       }
     } else if (isBufferResponse(response)) {
-      for (const c of response.cities) {
-        entries.push({ wkt: c.wkt, style: c.source === 'Agent-1' ? CLASS_STYLE.agent1 : CLASS_STYLE.agent2 });
+      for (const m of response.matches) {
+        entries.push({ wkt: m.wkt, style: m.source === 'Agent-1' ? CLASS_STYLE.agent1 : CLASS_STYLE.agent2 });
       }
-    } else if (isSpatialOperationResponse(response) && response.result) {
-      entries.push({ wkt: response.result.wkt, style: { color: '#EAF1F8', weight: 2, fillColor: '#6C8EF5', fillOpacity: 0.45 } });
+    } else if (isSpatialOperationResponse(response)) {
+      if (response.result) {
+        entries.push({ wkt: response.result.wkt, style: { color: '#EAF1F8', weight: 2, fillColor: '#6C8EF5', fillOpacity: 0.45 } });
+      }
+      for (const m of response.matches ?? []) {
+        entries.push({ wkt: m.wkt, style: m.source === 'Agent-1' ? CLASS_STYLE.agent1 : CLASS_STYLE.agent2 });
+      }
     }
 
     const layers: L.Layer[] = [];

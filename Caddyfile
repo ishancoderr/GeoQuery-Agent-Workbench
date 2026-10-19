@@ -1,0 +1,39 @@
+# The workbench's web server in production (the same paths as proxy.conf.json
+# in development, so the app needs no changes).
+#
+# SITE_ADDRESS (from kqml-deploy/.env):
+#   a domain, e.g. kqml-thesis.duckdns.org -> HTTPS with a Let's Encrypt
+#                                            certificate, fetched and renewed by Caddy
+#   :80                                    -> plain HTTP (a test on your own computer)
+# The agent addresses are the docker-compose service names.
+
+{$SITE_ADDRESS::80} {
+	encode zstd gzip
+
+	handle_path /api/agent1/* {
+		reverse_proxy {$AGENT1_UPSTREAM:agent1:8000}
+	}
+	handle_path /api/agent2/* {
+		reverse_proxy {$AGENT2_UPSTREAM:agent2:8001}
+	}
+	# The evaluator runs inside the Agent-1 container (started from the
+	# Evaluation tab). While it is stopped, Caddy answers 502 and the tab
+	# offers "Start evaluator".
+	handle_path /api/eval/* {
+		reverse_proxy {$EVALUATOR_UPSTREAM:agent1:8002}
+	}
+
+	# The app: every other path is Angular's (index.html for unknown paths).
+	handle {
+		root * /srv/ui
+		try_files {path} /index.html
+		file_server
+	}
+
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+}

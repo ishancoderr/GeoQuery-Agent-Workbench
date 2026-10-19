@@ -1,8 +1,9 @@
 import { toSignal } from '@angular/core/rxjs-interop';
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { Store } from '@ngrx/store';
 import type { GeoJSONGeometry } from 'wellknown';
 
+import { AgentId } from '../../core/models/agent.model';
 import {
   getInvolvedSpatialNames,
   isBufferResponse,
@@ -13,7 +14,7 @@ import {
 import { BoundaryGeoJsonService } from '../../core/services/boundary-geojson.service';
 import { geoJsonToWkt, wktGeometryType } from '../../core/utils/wkt.util';
 import { CopyButtonComponent } from '../../shared/copy-button/copy-button.component';
-import { selectLastActiveResult } from '../../state/agents/agents.selectors';
+import { selectAgentResult } from '../../state/agents/agents.selectors';
 
 interface WktEntry {
   name: string;
@@ -33,7 +34,15 @@ export class WktPanelComponent {
   private readonly store = inject(Store);
   private readonly boundaryService = inject(BoundaryGeoJsonService);
 
-  private readonly activeResult = this.store.selectSignal(selectLastActiveResult);
+  agentId = input.required<AgentId>();
+
+  // Select both up front and pick per the input lazily inside a computed — see
+  // the same pattern (and the reason for it) in GeoMapComponent.
+  private readonly agent1Result = this.store.selectSignal(selectAgentResult('agent1'));
+  private readonly agent2Result = this.store.selectSignal(selectAgentResult('agent2'));
+  private readonly activeResult = computed(() =>
+    this.agentId() === 'agent1' ? this.agent1Result() : this.agent2Result(),
+  );
   private readonly featureByName = toSignal(this.boundaryService.featureByName$, { initialValue: null });
 
   /** True when the current response already shows its own real WKT inline (geometry/buffer/operation views). */

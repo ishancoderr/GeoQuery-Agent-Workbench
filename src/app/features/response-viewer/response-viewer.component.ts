@@ -7,8 +7,10 @@ import {
   isGeometryResponse,
   isMessageResponse,
   isSpatialOperationResponse,
+  isUnrecognizedResponse,
   isVerdictResponse,
 } from '../../core/models/agent-response.model';
+import { AgentId } from '../../core/models/agent.model';
 import { BufferCitiesViewComponent } from './views/buffer-cities-view/buffer-cities-view.component';
 import { DataGroupsViewComponent } from './views/data-groups-view/data-groups-view.component';
 import { GeometryLookupViewComponent } from './views/geometry-lookup-view/geometry-lookup-view.component';
@@ -35,6 +37,7 @@ import { PerformancePanelComponent } from './performance-panel/performance-panel
 })
 export class ResponseViewerComponent {
   response = input.required<AgentQueryResponse>();
+  agentId = input.required<AgentId>();
 
   // Each computed narrows the union to one shape (or null) so the template can
   // pass a correctly-typed value to each sub-view. The response() signal must be
@@ -63,4 +66,6 @@ export class ResponseViewerComponent {
     const r = this.response();
     return !isMessageResponse(r) && isSpatialOperationResponse(r) ? r : null;
   });
+  unrecognized = computed(() => isUnrecognizedResponse(this.response()));
+  rawJson = computed(() => JSON.stringify(this.response(), null, 2));
 }

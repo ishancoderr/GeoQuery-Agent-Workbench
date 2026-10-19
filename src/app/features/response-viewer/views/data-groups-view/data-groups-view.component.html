@@ -13,7 +13,7 @@
       <table class="result-table">
         <thead>
           <tr>
-            <th>state</th>
+            <th>{{ response().query.entity_type }}</th>
             <th>year</th>
             @for (attr of response().query.attributes; track attr) {
               <th>{{ attrLabel(attr) }}</th>
@@ -22,9 +22,9 @@
           </tr>
         </thead>
         <tbody>
-          @for (row of group.rows; track row.state + row.year) {
+          @for (row of group.rows; track row.spatial + row.year) {
             <tr>
-              <td>{{ row.state }}</td>
+              <td>{{ row.spatial }}</td>
               <td>{{ row.year }}</td>
               @for (attr of response().query.attributes; track attr) {
                 <td>{{ fmtNum(attrValue(row, attr)) }}</td>
@@ -36,4 +36,8 @@
       </table>
     </div>
   </div>
+}
+
+@if (response().totals?.length) {
+  <app-combined-totals [totals]="response().totals!" [fullTotalYears]="response().full_total_years" />
 }

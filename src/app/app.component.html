@@ -1,8 +1,19 @@
+@if (authStatus() === 'checking') {
+  <div class="checking mono">checking your session…</div>
+} @else if (authStatus() === 'anonymous') {
+  <app-login />
+} @else {
 <div class="topbar">
   <div class="brand">
     <span class="marks"><span class="a1"></span><span class="a2"></span></span>
     GeoQuery Agent Workbench
   </div>
+  <nav class="tabs" role="tablist">
+    <button role="tab" [attr.aria-selected]="tab() === 'workbench'" [class.on]="tab() === 'workbench'"
+            (click)="setTab('workbench')">Workbench</button>
+    <button role="tab" [attr.aria-selected]="tab() === 'evaluation'" [class.on]="tab() === 'evaluation'"
+            (click)="setTab('evaluation')">Evaluation</button>
+  </nav>
   <div class="health-group">
     <div class="health-pill mono">
       <span class="ping" [class.offline]="agent1Health().health === 'offline'"></span>
@@ -14,10 +25,17 @@
       {{ AGENT_META.agent2.label }} · :{{ AGENT_META.agent2.port }} ·
       {{ agent2Health().health }}
     </div>
+    <div class="user-box">
+      <span class="user-name mono" [title]="user()!.username">{{ user()!.name }}</span>
+      <button class="logout-btn" (click)="logOut()">Log out</button>
+    </div>
   </div>
 </div>
 
 <main>
+  @if (tab() === 'evaluation') {
+  <app-evaluation />
+  } @else {
   <h2 class="section-title">query &amp; response — per agent</h2>
   <div class="console-grid">
     <app-agent-console agentId="agent1" />
@@ -25,12 +43,20 @@
   </div>
 
   <h2 class="section-title">geometry — real boundaries, real WKT</h2>
-  <div class="geo-wrap">
-    <app-geo-map />
-    <app-wkt-panel />
+  <div class="geo-columns">
+    <div class="geo-agent-block">
+      <app-geo-map agentId="agent1" />
+      <app-wkt-panel agentId="agent1" />
+    </div>
+    <div class="geo-agent-block">
+      <app-geo-map agentId="agent2" />
+      <app-wkt-panel agentId="agent2" />
+    </div>
   </div>
 
   <h2 class="section-title">evaluation log</h2>
   <app-stat-cards />
   <app-metrics-table />
+  }
 </main>
+}

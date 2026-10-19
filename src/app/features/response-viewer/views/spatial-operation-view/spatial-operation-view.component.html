@@ -1,6 +1,9 @@
 <div class="param-chips">
   <span class="param-chip">operation <b>{{ response().query.operation }}</b></span>
   <span class="param-chip">entities <b>{{ response().query.spatial.join(', ') }}</b></span>
+  @if (response().query.target_entity) {
+    <span class="param-chip">target <b>{{ response().query.target_entity }}</b></span>
+  }
 </div>
 
 @if (response().still_missing?.length) {
@@ -47,13 +50,63 @@
         </tr>
       </thead>
       <tbody>
-        @for (t of targets; track $index) {
+        @for (t of targets; track t.name) {
           <tr>
-            <td>{{ t.entity_name || t.name }}</td>
-            <td>{{ t.within === false ? 'no' : 'yes' }}</td>
+            <td>{{ t.name }}</td>
+            <td>{{ t.meets_zone ? 'yes' : 'no' }}</td>
           </tr>
         }
       </tbody>
     </table>
   </div>
+}
+
+@if (response().matches; as matches) {
+  @if (matches.length === 0) {
+    <p class="section-note">no {{ response().query.target_entity || 'place' }} found inside the new shape</p>
+  } @else {
+    <p class="section-note">
+      {{ matches.length }} {{ response().query.target_entity || 'place' }}(s) inside the new shape
+      @if (response().summary; as sum) {
+        · {{ sum.from_local }} local · {{ sum.from_peer }} from peer
+      }
+    </p>
+    <app-zone-matches [matches]="matches" />
+  }
+}
+
+@if (response().data?.length) {
+  <div class="group-block">
+    <div class="group-label complete">values per place ({{ response().data!.length }})</div>
+    <div class="table-scroll">
+      <table class="result-table">
+        <thead>
+          <tr>
+            <th>place</th>
+            <th>year</th>
+            @for (attr of response().query.attributes ?? []; track attr) {
+              <th>{{ attrLabel(attr) }}</th>
+            }
+            <th>source</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of response().data!; track row.spatial + row.year) {
+            <tr>
+              <td>{{ row.spatial }}</td>
+              <td>{{ row.year }}</td>
+              @for (attr of response().query.attributes ?? []; track attr) {
+                <td>{{ fmtNum(numeric(row[attr])) }}</td>
+              }
+              <td><app-source-badge [source]="row.source" /></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+}
+
+@if (response().totals?.length) {
+  <app-combined-totals [totals]="response().totals!" [fullTotalYears]="response().full_total_years" />
 }

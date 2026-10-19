@@ -10,6 +10,7 @@
         <th>time</th>
         <th>agent</th>
         <th>query</th>
+        <th>model</th>
         <th>status</th>
         <th>resp. time</th>
         <th>tokens</th>
@@ -28,6 +29,7 @@
             </span>
           </td>
           <td class="q-trunc" [title]="h.query">{{ truncate(h.query, 60) }}</td>
+          <td>{{ h.llm }}</td>
           <td><span class="status-pill" [class]="h.status">{{ h.status }}</span></td>
           <td>{{ h.totalMs }} ms</td>
           <td>{{ fmtNum(h.tokens) }}</td>

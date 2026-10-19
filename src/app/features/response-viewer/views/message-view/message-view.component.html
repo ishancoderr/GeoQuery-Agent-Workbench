@@ -1,5 +1,7 @@
 <div class="param-chips">
-  <span class="param-chip">type <b>{{ response().query.type }}</b></span>
+  @if (response().query; as q) {
+    <span class="param-chip">type <b>{{ q.type }}</b></span>
+  }
   <span class="status-pill" [class]="response().status">{{ response().status }}</span>
 </div>
 <div class="message-banner" [class]="response().status">{{ response().message }}</div>

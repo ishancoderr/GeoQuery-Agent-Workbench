@@ -15,6 +15,7 @@ export const EXAMPLE_QUERIES: Record<AgentId, ExampleQuery[]> = {
     { label: 'geometry', text: 'Show me the geometry of Sachsen and Berlin' },
     { label: 'spatial operation', text: 'What is the intersection of Bayern and Sachsen?' },
     { label: 'city buffer', text: 'Which cities are within 80 km of Frankfurt?' },
+    { label: 'cities in state', text: 'List all the cities inside Bayern' },
   ],
   agent2: [
     { label: 'direct lookup', text: 'Population of Bayern in 2021' },
@@ -24,5 +25,6 @@ export const EXAMPLE_QUERIES: Record<AgentId, ExampleQuery[]> = {
     { label: 'geometry', text: 'Show me the geometry of Hessen and München' },
     { label: 'spatial operation', text: 'Union of Hessen and Bayern' },
     { label: 'city buffer', text: 'Which cities are within 100 km of München?' },
+    { label: 'cities in state', text: 'Which cities are in Hessen?' },
   ],
 };

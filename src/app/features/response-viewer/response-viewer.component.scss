@@ -9,3 +9,17 @@
   font-size: 11.5px;
   color: var(--text-faint);
 }
+
+.raw-json {
+  margin-top: 10px;
+  max-height: 320px;
+  overflow: auto;
+  font-size: 11.5px;
+  color: var(--text-primary);
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 10px 12px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}

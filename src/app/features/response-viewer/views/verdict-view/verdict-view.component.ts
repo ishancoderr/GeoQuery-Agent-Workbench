@@ -12,6 +12,12 @@ import { VerdictResponse } from '../../../../core/models/agent-response.model';
 export class VerdictViewComponent {
   response = input.required<VerdictResponse>();
 
+  /** "states", "cities", ... — the backend names the candidate type instead of assuming states. */
+  entityLabel = computed(() => {
+    const t = this.response().query.entity_type || 'state';
+    return t.endsWith('y') ? t.slice(0, -1) + 'ies' : t + 's';
+  });
+
   isVerdictQuestion = computed(() => this.response().query.relationship.subject !== null);
 
   verdictClass = computed<'yes' | 'no' | 'na'>(() => {

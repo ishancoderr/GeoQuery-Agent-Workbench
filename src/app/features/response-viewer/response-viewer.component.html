@@ -21,6 +21,10 @@
   @if (operationResponse(); as r) {
     <app-spatial-operation-view [response]="r" />
   }
+  @if (unrecognized()) {
+    <div class="message-banner">This response shape isn't one the workbench knows how to display — raw JSON below.</div>
+    <pre class="raw-json mono">{{ rawJson() }}</pre>
+  }
 }
 
-<app-performance-panel [response]="response()" />
+<app-performance-panel [response]="response()" [agentId]="agentId()" />

@@ -17,9 +17,27 @@
           <span class="chip" (click)="fillExample(ex.text)">{{ ex.label }}</span>
         }
       </div>
-      <button class="send-btn" [disabled]="state().status === 'loading'" (click)="send()">
-        {{ state().status === 'loading' ? 'Sending…' : 'Send' }}
-      </button>
+      <div class="send-group">
+        <select
+          class="llm-select"
+          title="Language model for classify, extract and SQL"
+          [ngModel]="state().llm"
+          (ngModelChange)="setLlm($event)"
+          [disabled]="state().status === 'loading' || state().llms.length === 0"
+        >
+          @if (state().llms.length === 0) {
+            <option [ngValue]="null">default model</option>
+          }
+          @for (m of state().llms; track m.id) {
+            <option [ngValue]="m.id" [disabled]="!m.available">
+              {{ m.label }}{{ m.available ? '' : ' — not configured' }}
+            </option>
+          }
+        </select>
+        <button class="send-btn" [disabled]="state().status === 'loading'" (click)="send()">
+          {{ state().status === 'loading' ? 'Sending…' : 'Send' }}
+        </button>
+      </div>
     </div>
   </div>
 
@@ -27,7 +45,10 @@
     @if (state().error) {
       <div class="console-error">{{ state().error }}</div>
     } @else if (state().response) {
-      <app-response-viewer [response]="state().response!" />
+      @if (state().response!.llm; as answeredBy) {
+        <div class="answered-by mono">answered by {{ answeredBy.label }}</div>
+      }
+      <app-response-viewer [response]="state().response!" [agentId]="agentId()" />
     } @else {
       // send a query above to see the parsed parameters and result
     }
